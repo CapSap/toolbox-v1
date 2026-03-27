@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linkage Explorer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0e0e0e;
+    --panel: #161616;
+    --border: #2a2a2a;
+    --accent: #c8f135;
+    --warn: #ff6b35;
+    --ok: #35d4c8;
+    --text: #e8e8e8;
+    --muted: #666;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 320px 1fr;
+    gap: 0;
+  }
+
+  header {
+    grid-column: 1 / -1;
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+
+  header span {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .controls {
+    padding: 24px 20px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+  }
+
+  .control-group label {
+    display: block;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 2px;
+    background: var(--border);
+    outline: none;
+    border-radius: 2px;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+  }
+
+  .val {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 38px;
+    text-align: right;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+  }
+
+  .readout {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .readout-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+  }
+
+  .readout-row .label { color: var(--muted); }
+  .readout-row .value { font-weight: 700; }
+
+  .status {
+    margin-top: 4px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .status.ok { background: rgba(53,212,200,0.12); color: var(--ok); border: 1px solid rgba(53,212,200,0.3); }
+  .status.warn { background: rgba(255,107,53,0.12); color: var(--warn); border: 1px solid rgba(255,107,53,0.3); }
+
+  .canvas-area {
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  canvas {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    max-width: 100%;
+  }
+
+  .section-title {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Linkage Explorer</h1>
+  <span>P1 → P3 → P2 · Equal rods · m = m</span>
+</header>
+
+<div class="controls">
+  <div>
+    <div class="section-title">Parameters</div>
+
+    <div class="control-group">
+      <label>x — horizontal offset of P1 (39–78)</label>
+      <div class="slider-row">
+        <input type="range" id="x" min="39" max="78" value="58" step="0.5">
+        <span class="val" id="xval">58</span>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>y — vertical offset of P1/P2 (1–80)</label>
+      <div class="slider-row">
+        <input type="range" id="y" min="1" max="80" value="30" step="0.5">
+        <span class="val" id="yval">30</span>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label>m — rod length</label>
+      <div class="slider-row">
+        <input type="range" id="m" min="50" max="200" value="110" step="0.5">
+        <span class="val" id="mval">110</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <div class="section-title">Derived values</div>
+    <div class="readout">
+      <div class="readout-row">
+        <span class="label">P1</span>
+        <span class="value" id="p1out">—</span>
+      </div>
+      <div class="readout-row">
+        <span class="label">P2</span>
+        <span class="value" id="p2out">—</span>
+      </div>
+      <div class="readout-row">
+        <span class="label">P3</span>
+        <span class="value" id="p3out">—</span>
+      </div>
+      <div class="readout-row">
+        <span class="label">|y₃| vs y</span>
+        <span class="value" id="depthout">—</span>
+      </div>
+      <div class="readout-row">
+        <span class="label">m required (min)</span>
+        <span class="value" id="mminout">—</span>
+      </div>
+      <div class="readout-row">
+        <span class="label">m required (max)</span>
+        <span class="value" id="mmaxout">—</span>
+      </div>
+    </div>
+
+    <div class="status ok" id="status">VALID</div>
+  </div>
+</div>
+
+<div class="canvas-area">
+  <canvas id="c" width="700" height="520"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+const sliders = { x: document.getElementById('x'), y: document.getElementById('y'), m: document.getElementById('m') };
+const vals = { x: document.getElementById('xval'), y: document.getElementById('yval'), m: document.getElementById('mval') };
+
+function getVals() {
+  return {
+    x: parseFloat(sliders.x.value),
+    y: parseFloat(sliders.y.value),
+    m: parseFloat(sliders.m.value)
+  };
+}
+
+function compute({ x, y, m }) {
+  const P1 = { x: x, y: -y };
+  const P2 = { x: 210 - x, y: y };
+  const x3 = 105;
+  const inner = m * m - (105 - x) * (105 - x) - y * y;
+  const valid = inner >= 0;
+  const y3 = valid ? -Math.sqrt(inner) : null;
+  const mMin = Math.sqrt((105 - x) ** 2 + y ** 2);
+  const mMax = Math.sqrt((105 - x) ** 2 + 2 * y * y);
+  const constraint = valid ? (Math.abs(y3) < y) : false;
+  return { P1, P2, P3: valid ? { x: x3, y: y3 } : null, mMin, mMax, valid, constraint, y };
+}
+
+function draw(data) {
+  const { P1, P2, P3, valid } = data;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // coordinate mapping: world 0–210 → canvas, origin at axis
+  const W = canvas.width, H = canvas.height;
+  const pad = 60;
+  const scaleX = (W - pad * 2) / 220;
+  const axisY = H * 0.42;
+
+  function tx(wx) { return pad + wx * scaleX; }
+  function ty(wy) { return axisY - wy * scaleX; }
+
+  // grid lines
+  ctx.strokeStyle = '#1e1e1e';
+  ctx.lineWidth = 1;
+  for (let gx = 0; gx <= 220; gx += 20) {
+    ctx.beginPath(); ctx.moveTo(tx(gx), 0); ctx.lineTo(tx(gx), H); ctx.stroke();
+  }
+  for (let gy = -100; gy <= 100; gy += 20) {
+    ctx.beginPath(); ctx.moveTo(0, ty(gy)); ctx.lineTo(W, ty(gy)); ctx.stroke();
+  }
+
+  // axis
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad - 10, ty(0)); ctx.lineTo(W - pad + 10, ty(0)); ctx.stroke();
+
+  // axis ticks
+  ctx.fillStyle = '#444';
+  ctx.font = '10px JetBrains Mono';
+  ctx.textAlign = 'center';
+  [0, 39, 78, 105, 130, 210].forEach(v => {
+    ctx.beginPath(); ctx.moveTo(tx(v), ty(0) - 4); ctx.lineTo(tx(v), ty(0) + 4);
+    ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillText(v, tx(v), ty(0) + 16);
+  });
+
+  // y constraint band (shaded region showing valid P3 zone)
+  if (valid && P3) {
+    const yLimit = data.y;
+    ctx.fillStyle = 'rgba(200,241,53,0.04)';
+    ctx.fillRect(tx(90), ty(0), tx(120) - tx(90), ty(-yLimit) - ty(0));
+    ctx.strokeStyle = 'rgba(200,241,53,0.15)';
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(tx(80), ty(-yLimit)); ctx.lineTo(tx(130), ty(-yLimit)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(200,241,53,0.4)';
+    ctx.font = '9px JetBrains Mono';
+    ctx.textAlign = 'left';
+    ctx.fillText('y limit', tx(131), ty(-yLimit) + 3);
+  }
+
+  if (!valid) {
+    ctx.fillStyle = 'rgba(255,107,53,0.06)';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // rods
+  if (valid && P3) {
+    const rodColor = data.constraint ? '#c8f135' : '#ff6b35';
+    ctx.strokeStyle = rodColor;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(tx(P1.x), ty(P1.y));
+    ctx.lineTo(tx(P3.x), ty(P3.y));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tx(P3.x), ty(P3.y));
+    ctx.lineTo(tx(P2.x), ty(P2.y));
+    ctx.stroke();
+
+    // midpoint guide
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath(); ctx.moveTo(tx(105), ty(20)); ctx.lineTo(tx(105), ty(-100)); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // P1 vertical offset indicator
+  ctx.strokeStyle = '#444';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 4]);
+  ctx.beginPath(); ctx.moveTo(tx(P1.x), ty(0)); ctx.lineTo(tx(P1.x), ty(P1.y)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx(P2.x), ty(0)); ctx.lineTo(tx(P2.x), ty(P2.y)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // points
+  function dot(px, py, color, label, labelPos = 'above') {
+    ctx.beginPath();
+    ctx.arc(tx(px), ty(py), 6, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#0e0e0e';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.font = 'bold 11px JetBrains Mono';
+    ctx.textAlign = 'center';
+    const offset = labelPos === 'above' ? -14 : 16;
+    ctx.fillText(label, tx(px), ty(py) + offset);
+  }
+
+  dot(P1.x, P1.y, '#35d4c8', 'P1', 'below');
+  dot(P2.x, P2.y, '#35d4c8', 'P2', 'above');
+
+  if (valid && P3) {
+    const p3color = data.constraint ? '#c8f135' : '#ff6b35';
+    dot(P3.x, P3.y, p3color, 'P3', 'below');
+  }
+
+  // origin
+  ctx.beginPath(); ctx.arc(tx(0), ty(0), 3, 0, Math.PI * 2);
+  ctx.fillStyle = '#555'; ctx.fill();
+  ctx.fillStyle = '#555'; ctx.font = '10px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('(0,0)', tx(0), ty(0) - 10);
+}
+
+function update() {
+  const v = getVals();
+  vals.x.textContent = v.x;
+  vals.y.textContent = v.y;
+  vals.m.textContent = v.m;
+
+  const data = compute(v);
+
+  document.getElementById('p1out').textContent = `(${v.x}, ${-v.y})`;
+  document.getElementById('p2out').textContent = `(${210 - v.x}, ${v.y})`;
+  document.getElementById('p3out').textContent = data.valid && data.P3
+    ? `(105, ${data.P3.y.toFixed(1)})`
+    : 'm too short';
+  document.getElementById('depthout').textContent = data.valid && data.P3
+    ? `${Math.abs(data.P3.y).toFixed(1)} vs ${v.y}`
+    : '—';
+  document.getElementById('mminout').textContent = data.mMin.toFixed(1);
+  document.getElementById('mmaxout').textContent = data.mMax.toFixed(1);
+
+  const status = document.getElementById('status');
+  if (!data.valid) {
+    status.textContent = 'M TOO SHORT — P3 UNREACHABLE';
+    status.className = 'status warn';
+  } else if (!data.constraint) {
+    status.textContent = 'INVALID — P3 BELOW Y LIMIT';
+    status.className = 'status warn';
+  } else {
+    status.textContent = 'VALID — CONSTRAINT SATISFIED';
+    status.className = 'status ok';
+  }
+
+  draw(data);
+}
+
+Object.values(sliders).forEach(s => s.addEventListener('input', update));
+update();
+</script>
+</body>
+</html>
