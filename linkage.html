@@ -223,6 +223,14 @@
         <span class="value" id="p3out">—</span>
       </div>
       <div class="readout-row">
+        <span class="label">d(P1,P3)</span>
+        <span class="value" id="d1out" style="color: var(--accent);">—</span>
+      </div>
+      <div class="readout-row">
+        <span class="label">d(P2,P3)</span>
+        <span class="value" id="d2out" style="color: var(--accent);">—</span>
+      </div>
+      <div class="readout-row">
         <span class="label">|y₃| vs y</span>
         <span class="value" id="depthout">—</span>
       </div>
@@ -231,12 +239,24 @@
         <span class="value" id="mminout">—</span>
       </div>
       <div class="readout-row">
-        <span class="label">m required (max)</span>
+        <span class="label">P1–P2 span</span>
         <span class="value" id="mmaxout">—</span>
       </div>
     </div>
 
     <div class="status ok" id="status">VALID</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <div class="section-title">P3 solution</div>
+    <div class="control-group">
+      <label>Which side of P1–P2 line?</label>
+      <div class="slider-row">
+        <button id="sideBtn" style="background: none; border: 1px solid var(--border); color: var(--accent); font-family: inherit; font-size: 0.72rem; padding: 6px 14px; border-radius: 4px; cursor: pointer; letter-spacing: 0.05em;">FLIP P3</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -247,6 +267,12 @@
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
+
+let p3Sign = -1;
+document.getElementById('sideBtn').addEventListener('click', () => {
+  p3Sign *= -1;
+  update();
+});
 
 const sliders = { x: document.getElementById('x'), y: document.getElementById('y'), m: document.getElementById('m') };
 const vals = { x: document.getElementById('xval'), y: document.getElementById('yval'), m: document.getElementById('mval') };
@@ -262,14 +288,38 @@ function getVals() {
 function compute({ x, y, m }) {
   const P1 = { x: x, y: -y };
   const P2 = { x: 210 - x, y: y };
-  const x3 = 105;
-  const inner = m * m - (105 - x) * (105 - x) - y * y;
-  const valid = inner >= 0;
-  const y3 = valid ? -Math.sqrt(inner) : null;
-  const mMin = Math.sqrt((105 - x) ** 2 + y ** 2);
-  const mMax = Math.sqrt((105 - x) ** 2 + 2 * y * y);
-  const constraint = valid ? (Math.abs(y3) < y) : false;
-  return { P1, P2, P3: valid ? { x: x3, y: y3 } : null, mMin, mMax, valid, constraint, y };
+
+  // Midpoint of P1-P2
+  const mx = 105;  // always (x + 210-x)/2
+  const my = 0;    // always (-y + y)/2
+
+  // Half-distance between P1 and P2
+  const dx = P2.x - P1.x;  // 210 - 2x
+  const dy = P2.y - P1.y;  // 2y
+  const halfD = Math.sqrt(dx * dx + dy * dy) / 2;
+
+  const valid = m >= halfD;
+  if (!valid) {
+    return { P1, P2, P3: null, mMin: halfD, mMax: halfD, valid: false, constraint: false, y };
+  }
+
+  // Perpendicular direction to P1-P2 (normalised)
+  const perpX = -dy / (2 * halfD);
+  const perpY = dx / (2 * halfD);
+
+  // Distance from midpoint along perpendicular
+  const h = Math.sqrt(m * m - halfD * halfD);
+
+  // Two solutions — p3Sign controls which side of P1-P2 line
+  const sign = p3Sign;
+  const P3 = {
+    x: mx + sign * h * perpX,
+    y: my + sign * h * perpY
+  };
+
+  const constraint = Math.abs(P3.y) < y;
+
+  return { P1, P2, P3, mMin: halfD, mMax: null, valid: true, constraint, y, h, halfD };
 }
 
 function draw(data) {
@@ -310,20 +360,28 @@ function draw(data) {
     ctx.fillText(v, tx(v), ty(0) + 16);
   });
 
-  // y constraint band (shaded region showing valid P3 zone)
+  // y constraint band (shaded region showing valid P3 zone: -y to +y, full width)
   if (valid && P3) {
     const yLimit = data.y;
     ctx.fillStyle = 'rgba(200,241,53,0.04)';
-    ctx.fillRect(tx(90), ty(0), tx(120) - tx(90), ty(-yLimit) - ty(0));
+    const bandTop = ty(yLimit);
+    const bandBot = ty(-yLimit);
+    ctx.fillRect(0, bandTop, W, bandBot - bandTop);
+
     ctx.strokeStyle = 'rgba(200,241,53,0.15)';
     ctx.setLineDash([4, 4]);
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(tx(80), ty(-yLimit)); ctx.lineTo(tx(130), ty(-yLimit)); ctx.stroke();
+    // +y line
+    ctx.beginPath(); ctx.moveTo(0, ty(yLimit)); ctx.lineTo(W, ty(yLimit)); ctx.stroke();
+    // -y line
+    ctx.beginPath(); ctx.moveTo(0, ty(-yLimit)); ctx.lineTo(W, ty(-yLimit)); ctx.stroke();
     ctx.setLineDash([]);
+
     ctx.fillStyle = 'rgba(200,241,53,0.4)';
     ctx.font = '9px JetBrains Mono';
     ctx.textAlign = 'left';
-    ctx.fillText('y limit', tx(131), ty(-yLimit) + 3);
+    ctx.fillText('+y = ' + yLimit, tx(215), ty(yLimit) + 3);
+    ctx.fillText('-y = -' + yLimit, tx(215), ty(-yLimit) + 3);
   }
 
   if (!valid) {
@@ -404,20 +462,31 @@ function update() {
   document.getElementById('p1out').textContent = `(${v.x}, ${-v.y})`;
   document.getElementById('p2out').textContent = `(${210 - v.x}, ${v.y})`;
   document.getElementById('p3out').textContent = data.valid && data.P3
-    ? `(105, ${data.P3.y.toFixed(1)})`
+    ? `(${data.P3.x.toFixed(1)}, ${data.P3.y.toFixed(1)})`
     : 'm too short';
+
+  if (data.valid && data.P3) {
+    const d1 = Math.sqrt((data.P3.x - data.P1.x) ** 2 + (data.P3.y - data.P1.y) ** 2);
+    const d2 = Math.sqrt((data.P3.x - data.P2.x) ** 2 + (data.P3.y - data.P2.y) ** 2);
+    document.getElementById('d1out').textContent = d1.toFixed(2);
+    document.getElementById('d2out').textContent = d2.toFixed(2);
+  } else {
+    document.getElementById('d1out').textContent = '—';
+    document.getElementById('d2out').textContent = '—';
+  }
+
   document.getElementById('depthout').textContent = data.valid && data.P3
     ? `${Math.abs(data.P3.y).toFixed(1)} vs ${v.y}`
     : '—';
   document.getElementById('mminout').textContent = data.mMin.toFixed(1);
-  document.getElementById('mmaxout').textContent = data.mMax.toFixed(1);
+  document.getElementById('mmaxout').textContent = data.valid && data.halfD ? (data.halfD * 2).toFixed(1) : '—';
 
   const status = document.getElementById('status');
   if (!data.valid) {
     status.textContent = 'M TOO SHORT — P3 UNREACHABLE';
     status.className = 'status warn';
   } else if (!data.constraint) {
-    status.textContent = 'INVALID — P3 BELOW Y LIMIT';
+    status.textContent = 'INVALID — |y₃| ≥ y';
     status.className = 'status warn';
   } else {
     status.textContent = 'VALID — CONSTRAINT SATISFIED';
