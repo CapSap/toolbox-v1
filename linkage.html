@@ -241,7 +241,7 @@
 </div>
 
 <div class="canvas-area">
-  <canvas id="c" width="700" height="520"></canvas>
+  <canvas id="c" width="700" height="640"></canvas>
 </div>
 
 <script>
@@ -276,54 +276,80 @@ function draw(data) {
   const { P1, P2, P3, valid } = data;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // coordinate mapping: world 0–210 → canvas, origin at axis
   const W = canvas.width, H = canvas.height;
   const pad = 60;
-  const scaleX = (W - pad * 2) / 220;
-  const axisY = H * 0.42;
 
-  function tx(wx) { return pad + wx * scaleX; }
-  function ty(wy) { return axisY - wy * scaleX; }
+  // Compute the bounding box of all points + some margin
+  const allX = [0, P1.x, P2.x, 210];
+  const allY = [0, P1.y, P2.y, data.y, -data.y];
+  if (P3) { allX.push(P3.x); allY.push(P3.y); }
+
+  const minX = Math.min(...allX) - 15;
+  const maxX = Math.max(...allX) + 15;
+  const minY = Math.min(...allY) - 25;
+  const maxY = Math.max(...allY) + 25;
+
+  const rangeX = maxX - minX;
+  const rangeY = maxY - minY;
+
+  // Uniform scale that fits both axes
+  const scale = Math.min((W - pad * 2) / rangeX, (H - pad * 2) / rangeY);
+
+  // Centre the drawing
+  const cx = (W - rangeX * scale) / 2;
+  const cy = (H - rangeY * scale) / 2;
+
+  function tx(wx) { return cx + (wx - minX) * scale; }
+  function ty(wy) { return cy + (maxY - wy) * scale; }
 
   // grid lines
   ctx.strokeStyle = '#1e1e1e';
   ctx.lineWidth = 1;
-  for (let gx = 0; gx <= 220; gx += 20) {
+  const gridStep = rangeX > 150 ? 20 : 10;
+  for (let gx = Math.floor(minX / gridStep) * gridStep; gx <= maxX; gx += gridStep) {
     ctx.beginPath(); ctx.moveTo(tx(gx), 0); ctx.lineTo(tx(gx), H); ctx.stroke();
   }
-  for (let gy = -100; gy <= 100; gy += 20) {
+  for (let gy = Math.floor(minY / gridStep) * gridStep; gy <= maxY; gy += gridStep) {
     ctx.beginPath(); ctx.moveTo(0, ty(gy)); ctx.lineTo(W, ty(gy)); ctx.stroke();
   }
 
-  // axis
+  // axes
   ctx.strokeStyle = '#333';
   ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(pad - 10, ty(0)); ctx.lineTo(W - pad + 10, ty(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx(minX), ty(0)); ctx.lineTo(tx(maxX), ty(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx(0), ty(minY)); ctx.lineTo(tx(0), ty(maxY)); ctx.stroke();
 
   // axis ticks
   ctx.fillStyle = '#444';
   ctx.font = '10px JetBrains Mono';
   ctx.textAlign = 'center';
-  [0, 39, 78, 105, 130, 210].forEach(v => {
-    ctx.beginPath(); ctx.moveTo(tx(v), ty(0) - 4); ctx.lineTo(tx(v), ty(0) + 4);
-    ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.fillText(v, tx(v), ty(0) + 16);
+  [0, 39, 78, 105, 210].forEach(v => {
+    if (v >= minX && v <= maxX) {
+      ctx.beginPath(); ctx.moveTo(tx(v), ty(0) - 4); ctx.lineTo(tx(v), ty(0) + 4);
+      ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillText(v, tx(v), ty(0) + 16);
+    }
   });
 
-  // y constraint band (shaded region showing valid P3 zone)
+  // y constraint band — full-width dashed lines at y and -y
   if (valid && P3) {
     const yLimit = data.y;
+    // shaded band between 0 and -yLimit
     ctx.fillStyle = 'rgba(200,241,53,0.04)';
-    ctx.fillRect(tx(90), ty(0), tx(120) - tx(90), ty(-yLimit) - ty(0));
+    ctx.fillRect(tx(minX), ty(0), tx(maxX) - tx(minX), ty(-yLimit) - ty(0));
+    // dashed limit line
     ctx.strokeStyle = 'rgba(200,241,53,0.15)';
     ctx.setLineDash([4, 4]);
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(tx(80), ty(-yLimit)); ctx.lineTo(tx(130), ty(-yLimit)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(minX), ty(-yLimit)); ctx.lineTo(tx(maxX), ty(-yLimit)); ctx.stroke();
+    // also show +y limit for reference
+    ctx.beginPath(); ctx.moveTo(tx(minX), ty(yLimit)); ctx.lineTo(tx(maxX), ty(yLimit)); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = 'rgba(200,241,53,0.4)';
     ctx.font = '9px JetBrains Mono';
     ctx.textAlign = 'left';
-    ctx.fillText('y limit', tx(131), ty(-yLimit) + 3);
+    ctx.fillText('-y = ' + (-yLimit), tx(maxX) - 55, ty(-yLimit) - 4);
+    ctx.fillText('+y = ' + yLimit, tx(maxX) - 55, ty(yLimit) - 4);
   }
 
   if (!valid) {
@@ -349,7 +375,7 @@ function draw(data) {
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 5]);
-    ctx.beginPath(); ctx.moveTo(tx(105), ty(20)); ctx.lineTo(tx(105), ty(-100)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(105), ty(maxY)); ctx.lineTo(tx(105), ty(minY)); ctx.stroke();
     ctx.setLineDash([]);
   }
 
