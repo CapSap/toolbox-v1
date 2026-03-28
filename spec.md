@@ -16,16 +16,16 @@ An isosceles two-bar linkage where two rigid rods of equal length m meet at a ve
 |--------|-------------------|--------------------------------|
 | Origin | (0, 0)            | Reference point                |
 | P1     | (x, −y)           | Below axis, right of origin    |
-| P2     | (210 − x, y)      | Above axis, right of origin    |
+| P2     | (286 − x, y)      | Above axis, right of origin    |
 | P3     | Derived            | Vertex where the two rods meet |
 
-P1 and P2 are always symmetric about the midpoint (105, 0) horizontally, but antisymmetric vertically (P1 at −y, P2 at +y).
+P1 and P2 are always symmetric about the midpoint (143, 0) horizontally, but antisymmetric vertically (P1 at −y, P2 at +y).
 
 ## Links
 
 - Rod 1: P1 → P3, length = m
 - Rod 2: P2 → P3, length = m (same as rod 1)
-- No rod connects P1 to P2 directly; the 210mm span is a layout dimension, not a physical link
+- No rod connects P1 to P2 directly; the 286mm span is a layout dimension, not a physical link
 
 ## Free parameters
 
@@ -39,7 +39,7 @@ P1 and P2 are always symmetric about the midpoint (105, 0) horizontally, but ant
 
 **Half-distance between P1 and P2:**
 
-    d_half = √((210 − 2x)² + (2y)²) / 2
+    d_half = √((286 − 2x)² + (2y)²) / 2
 
 **Minimum rod length** (P3 collapses onto the P1–P2 midpoint):
 
@@ -47,8 +47,8 @@ P1 and P2 are always symmetric about the midpoint (105, 0) horizontally, but ant
 
 **P3 position** (lies on the perpendicular bisector of segment P1–P2):
 
-    midpoint = (105, 0)
-    perpendicular direction (normalised) = (−2y, 210 − 2x) / (2 · d_half)
+    midpoint = (143, 0)
+    perpendicular direction (normalised) = (−2y, 286 − 2x) / (2 · d_half)
     h = √(m² − d_half²)
     P3 = midpoint ± h · perpendicular direction
 
@@ -62,8 +62,8 @@ There are two solutions for P3 (one on each side of the P1–P2 line). Both are 
 
 ## Key geometric properties
 
-- The horizontal distance between P1 and P2 is always 210 − 2x (ranges from 54mm to 132mm as x goes from 78 to 39)
-- The full diagonal distance between P1 and P2 is 2 · d_half = √((210 − 2x)² + 4y²)
+- The horizontal distance between P1 and P2 is always 286 − 2x (ranges from 130mm to 208mm as x goes from 78 to 39)
+- The full diagonal distance between P1 and P2 is 2 · d_half = √((286 − 2x)² + 4y²)
 - x does not affect the vertical geometry — it only shifts how far apart P1 and P2 are horizontally
 - Larger y increases the P1–P2 span and therefore increases m_min
 - Larger m pushes P3 further from the P1–P2 line along the perpendicular bisector
