@@ -250,7 +250,7 @@
         <span class="label">P3</span>
         <span class="value" id="p3out">—</span>
       </div>
-<div class="readout-row">
+      <div class="readout-row">
         <span class="label">P3 from (78,0)</span>
         <span class="value" id="p3relout">—</span>
       </div>
@@ -279,17 +279,6 @@
     <div class="status ok" id="status">VALID</div>
   </div>
 
-  <div class="divider"></div>
-
-  <div>
-    <div class="section-title">P3 solution</div>
-    <div class="control-group">
-      <label>Which side of P1–P2 line?</label>
-      <div class="slider-row">
-        <button id="sideBtn" style="background: none; border: 1px solid var(--border); color: var(--accent); font-family: inherit; font-size: 0.72rem; padding: 6px 14px; border-radius: 4px; cursor: pointer; letter-spacing: 0.05em;">FLIP P3</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <div class="canvas-area">
@@ -300,11 +289,7 @@
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
-let p3Sign = -1;
-document.getElementById('sideBtn').addEventListener('click', () => {
-  p3Sign *= -1;
-  update();
-});
+const p3Sign = -1;
 
 const sliders = { x: document.getElementById('x'), y: document.getElementById('y'), m: document.getElementById('m') };
 const vals = { x: document.getElementById('xval'), y: document.getElementById('yval'), m: document.getElementById('mval') };
@@ -508,6 +493,18 @@ function draw(data) {
 
 function update() {
   const v = getVals();
+
+  // Compute m_min for current x,y so we can clamp m
+  const dx0 = 286 - 2 * v.x;
+  const dy0 = 2 * v.y;
+  const mMin = Math.sqrt(dx0 * dx0 + dy0 * dy0) / 2;
+
+  // Clamp m to at least m_min
+  if (v.m < mMin) {
+    v.m = Math.ceil(mMin * 2) / 2; // round up to nearest 0.5
+    sliders.m.value = v.m;
+  }
+
   vals.x.textContent = v.x;
   vals.y.textContent = v.y;
   vals.m.textContent = v.m;
@@ -519,27 +516,17 @@ function update() {
   document.getElementById('p3out').textContent = `(${data.P3.x.toFixed(1)}, ${data.P3.y.toFixed(1)})`;
   document.getElementById('p3relout').textContent = `(${(data.P3.x - 78).toFixed(1)}, ${data.P3.y.toFixed(1)})`;
 
-  if (data.valid && data.P3) {
-    const d1 = Math.sqrt((data.P3.x - data.P1.x) ** 2 + (data.P3.y - data.P1.y) ** 2);
-    const d2 = Math.sqrt((data.P3.x - data.P2.x) ** 2 + (data.P3.y - data.P2.y) ** 2);
-    document.getElementById('d1out').textContent = d1.toFixed(2);
-    document.getElementById('d2out').textContent = d2.toFixed(2);
-  } else {
-    document.getElementById('d1out').textContent = '—';
-    document.getElementById('d2out').textContent = '—';
-  }
+  const d1 = Math.sqrt((data.P3.x - data.P1.x) ** 2 + (data.P3.y - data.P1.y) ** 2);
+  const d2 = Math.sqrt((data.P3.x - data.P2.x) ** 2 + (data.P3.y - data.P2.y) ** 2);
+  document.getElementById('d1out').textContent = d1.toFixed(2);
+  document.getElementById('d2out').textContent = d2.toFixed(2);
 
-  document.getElementById('depthout').textContent = data.valid && data.P3
-    ? `${Math.abs(data.P3.y).toFixed(1)} vs ${v.y}`
-    : '—';
+  document.getElementById('depthout').textContent = `${Math.abs(data.P3.y).toFixed(1)} vs ${v.y}`;
   document.getElementById('mminout').textContent = data.mMin.toFixed(1);
-  document.getElementById('mmaxout').textContent = data.valid && data.halfD ? (data.halfD * 2).toFixed(1) : '—';
+  document.getElementById('mmaxout').textContent = (data.halfD * 2).toFixed(1);
 
   const status = document.getElementById('status');
-  if (!data.valid) {
-    status.textContent = 'M TOO SHORT — P3 UNREACHABLE';
-    status.className = 'status warn';
-  } else if (!data.constraint) {
+  if (!data.constraint) {
     status.textContent = 'INVALID — |y₃| ≥ y';
     status.className = 'status warn';
   } else {
