@@ -345,6 +345,29 @@ function draw(data) {
     ctx.beginPath(); ctx.moveTo(0, ty(gy)); ctx.lineTo(W, ty(gy)); ctx.stroke();
   }
 
+  // rectangle vars
+  const height = 100
+
+  // rectangle: (0,-50) → (0,0) → (78,0) → (78,-50)
+  ctx.strokeStyle = 'rgba(200,241,53,0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(tx(0), ty(-height));
+  ctx.lineTo(tx(0), ty(0));
+  ctx.lineTo(tx(78), ty(0));
+  ctx.lineTo(tx(78), ty(-height));
+  ctx.closePath();
+  ctx.stroke();
+
+  // rectangle: (132,0) → (132,50) → (210,50) → (210,0)
+  ctx.beginPath();
+  ctx.moveTo(tx(132), ty(0));
+  ctx.lineTo(tx(132), ty(height));
+  ctx.lineTo(tx(210), ty(height));
+  ctx.lineTo(tx(210), ty(0));
+  ctx.closePath();
+  ctx.stroke();
+
   // axis
   ctx.strokeStyle = '#333';
   ctx.lineWidth = 1.5;
