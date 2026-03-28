@@ -213,10 +213,10 @@
     </div>
 
     <div class="control-group">
-      <label>y — vertical offset of P1/P2 (1–80)</label>
+      <label>y — vertical offset of P1/P2 (1–150)</label>
       <div class="slider-row">
         <button class="step-btn" data-slider="y" data-dir="-1">&minus;</button>
-        <input type="range" id="y" min="1" max="80" value="30" step="0.5">
+        <input type="range" id="y" min="1" max="150" value="30" step="0.5">
         <button class="step-btn" data-slider="y" data-dir="1">+</button>
         <span class="val" id="yval">30</span>
       </div>
@@ -315,14 +315,14 @@ function getVals() {
 
 function compute({ x, y, m }) {
   const P1 = { x: x, y: -y };
-  const P2 = { x: 210 - x, y: y };
+  const P2 = { x: 286 - x, y: y };
 
   // Midpoint of P1-P2
-  const mx = 105;  // always (x + 210-x)/2
+  const mx = 143;  // always (x + 286-x)/2
   const my = 0;    // always (-y + y)/2
 
   // Half-distance between P1 and P2
-  const dx = P2.x - P1.x;  // 210 - 2x
+  const dx = P2.x - P1.x;  // 286 - 2x
   const dy = P2.y - P1.y;  // 2y
   const halfD = Math.sqrt(dx * dx + dy * dy) / 2;
 
@@ -357,7 +357,7 @@ function draw(data) {
   // coordinate mapping: world 0–210 → canvas, origin at axis
   const W = canvas.width, H = canvas.height;
   const pad = 60;
-  const scaleX = (W - pad * 2) / 220;
+  const scaleX = (W - pad * 2) / 300;
     const axisY = H * 0.5;
 
   function tx(wx) { return pad + wx * scaleX; }
@@ -366,7 +366,7 @@ function draw(data) {
   // grid lines
   ctx.strokeStyle = '#1e1e1e';
   ctx.lineWidth = 1;
-  for (let gx = 0; gx <= 220; gx += 20) {
+  for (let gx = 0; gx <= 300; gx += 20) {
     ctx.beginPath(); ctx.moveTo(tx(gx), 0); ctx.lineTo(tx(gx), H); ctx.stroke();
   }
   for (let gy = -200; gy <= 100; gy += 20) {
@@ -374,7 +374,7 @@ function draw(data) {
   }
 
   // rectangle vars
-  const height = 100
+  const height = 200 
 
   // rectangle: (0,-50) → (0,0) → (78,0) → (78,-50)
   ctx.strokeStyle = 'rgba(200,241,53,0.35)';
@@ -387,12 +387,12 @@ function draw(data) {
   ctx.closePath();
   ctx.stroke();
 
-  // rectangle: (132,0) → (132,50) → (210,50) → (210,0)
+  // rectangle: (208,0) → (208,50) → (286,50) → (286,0)
   ctx.beginPath();
-  ctx.moveTo(tx(132), ty(0));
-  ctx.lineTo(tx(132), ty(height));
-  ctx.lineTo(tx(210), ty(height));
-  ctx.lineTo(tx(210), ty(0));
+  ctx.moveTo(tx(208), ty(0));
+  ctx.lineTo(tx(208), ty(height));
+  ctx.lineTo(tx(286), ty(height));
+  ctx.lineTo(tx(286), ty(0));
   ctx.closePath();
   ctx.stroke();
 
@@ -405,7 +405,7 @@ function draw(data) {
   ctx.fillStyle = '#444';
   ctx.font = '10px JetBrains Mono';
   ctx.textAlign = 'center';
-  [0, 39, 78, 105, 130, 210].forEach(v => {
+  [0, 39, 78, 143, 208, 286].forEach(v => {
     ctx.beginPath(); ctx.moveTo(tx(v), ty(0) - 4); ctx.lineTo(tx(v), ty(0) + 4);
     ctx.strokeStyle = '#444'; ctx.lineWidth = 1; ctx.stroke();
     ctx.fillText(v, tx(v), ty(0) + 16);
@@ -431,8 +431,8 @@ function draw(data) {
     ctx.fillStyle = 'rgba(200,241,53,0.4)';
     ctx.font = '9px JetBrains Mono';
     ctx.textAlign = 'left';
-    ctx.fillText('+y = ' + yLimit, tx(215), ty(yLimit) + 3);
-    ctx.fillText('-y = -' + yLimit, tx(215), ty(-yLimit) + 3);
+    ctx.fillText('+y = ' + yLimit, tx(290), ty(yLimit) + 3);
+    ctx.fillText('-y = -' + yLimit, tx(290), ty(-yLimit) + 3);
   }
 
   if (!valid) {
@@ -458,7 +458,7 @@ function draw(data) {
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 5]);
-    ctx.beginPath(); ctx.moveTo(tx(105), ty(20)); ctx.lineTo(tx(105), ty(-100)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx(143), ty(20)); ctx.lineTo(tx(143), ty(-100)); ctx.stroke();
     ctx.setLineDash([]);
   }
 
@@ -511,7 +511,7 @@ function update() {
   const data = compute(v);
 
   document.getElementById('p1out').textContent = `(${v.x}, ${-v.y})`;
-  document.getElementById('p2out').textContent = `(${210 - v.x}, ${v.y})`;
+  document.getElementById('p2out').textContent = `(${286 - v.x}, ${v.y})`;
   document.getElementById('p3out').textContent = data.valid && data.P3
     ? `(${data.P3.x.toFixed(1)}, ${data.P3.y.toFixed(1)})`
     : 'm too short';
