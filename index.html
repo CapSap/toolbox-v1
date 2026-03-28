@@ -330,7 +330,7 @@ function draw(data) {
   const W = canvas.width, H = canvas.height;
   const pad = 60;
   const scaleX = (W - pad * 2) / 220;
-  const axisY = H * 0.25;
+    const axisY = H * 0.5;
 
   function tx(wx) { return pad + wx * scaleX; }
   function ty(wy) { return axisY - wy * scaleX; }
