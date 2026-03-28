@@ -250,6 +250,10 @@
         <span class="label">P3</span>
         <span class="value" id="p3out">—</span>
       </div>
+<div class="readout-row">
+        <span class="label">P3 from (78,0)</span>
+        <span class="value" id="p3relout">—</span>
+      </div>
       <div class="readout-row">
         <span class="label">d(P1,P3)</span>
         <span class="value" id="d1out" style="color: var(--accent);">—</span>
@@ -512,9 +516,8 @@ function update() {
 
   document.getElementById('p1out').textContent = `(${v.x}, ${-v.y})`;
   document.getElementById('p2out').textContent = `(${286 - v.x}, ${v.y})`;
-  document.getElementById('p3out').textContent = data.valid && data.P3
-    ? `(${data.P3.x.toFixed(1)}, ${data.P3.y.toFixed(1)})`
-    : 'm too short';
+  document.getElementById('p3out').textContent = `(${data.P3.x.toFixed(1)}, ${data.P3.y.toFixed(1)})`;
+  document.getElementById('p3relout').textContent = `(${(data.P3.x - 78).toFixed(1)}, ${data.P3.y.toFixed(1)})`;
 
   if (data.valid && data.P3) {
     const d1 = Math.sqrt((data.P3.x - data.P1.x) ** 2 + (data.P3.y - data.P1.y) ** 2);
