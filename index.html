@@ -110,6 +110,28 @@
     text-align: right;
   }
 
+  .step-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.8rem;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .step-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
   .divider {
     height: 1px;
     background: var(--border);
@@ -183,7 +205,9 @@
     <div class="control-group">
       <label>x — horizontal offset of P1 (39–78)</label>
       <div class="slider-row">
+        <button class="step-btn" data-slider="x" data-dir="-1">&minus;</button>
         <input type="range" id="x" min="39" max="78" value="58" step="0.5">
+        <button class="step-btn" data-slider="x" data-dir="1">+</button>
         <span class="val" id="xval">58</span>
       </div>
     </div>
@@ -191,7 +215,9 @@
     <div class="control-group">
       <label>y — vertical offset of P1/P2 (1–80)</label>
       <div class="slider-row">
+        <button class="step-btn" data-slider="y" data-dir="-1">&minus;</button>
         <input type="range" id="y" min="1" max="80" value="30" step="0.5">
+        <button class="step-btn" data-slider="y" data-dir="1">+</button>
         <span class="val" id="yval">30</span>
       </div>
     </div>
@@ -199,7 +225,9 @@
     <div class="control-group">
       <label>m — rod length</label>
       <div class="slider-row">
+        <button class="step-btn" data-slider="m" data-dir="-1">&minus;</button>
         <input type="range" id="m" min="50" max="200" value="110" step="0.5">
+        <button class="step-btn" data-slider="m" data-dir="1">+</button>
         <span class="val" id="mval">110</span>
       </div>
     </div>
@@ -520,6 +548,17 @@ function update() {
 }
 
 Object.values(sliders).forEach(s => s.addEventListener('input', update));
+
+document.querySelectorAll('.step-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const s = sliders[btn.dataset.slider];
+    const dir = parseFloat(btn.dataset.dir);
+    const step = parseFloat(s.step) || 0.5;
+    const next = parseFloat(s.value) + dir * step;
+    s.value = Math.min(parseFloat(s.max), Math.max(parseFloat(s.min), next));
+    update();
+  });
+});
 update();
 </script>
 </body>
