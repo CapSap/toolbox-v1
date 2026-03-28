@@ -279,6 +279,17 @@
     <div class="status ok" id="status">VALID</div>
   </div>
 
+  <div class="divider"></div>
+
+  <div>
+    <div class="section-title">P3 solution</div>
+    <div class="control-group">
+      <label>Which side of P1–P2 line?</label>
+      <div class="slider-row">
+        <button id="sideBtn" style="background: none; border: 1px solid var(--border); color: var(--accent); font-family: inherit; font-size: 0.72rem; padding: 6px 14px; border-radius: 4px; cursor: pointer; letter-spacing: 0.05em;">FLIP P3</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="canvas-area">
@@ -289,7 +300,11 @@
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
-const p3Sign = -1;
+let p3Sign = -1;
+document.getElementById('sideBtn').addEventListener('click', () => {
+  p3Sign *= -1;
+  update();
+});
 
 const sliders = { x: document.getElementById('x'), y: document.getElementById('y'), m: document.getElementById('m') };
 const vals = { x: document.getElementById('xval'), y: document.getElementById('yval'), m: document.getElementById('mval') };
